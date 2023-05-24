@@ -1,0 +1,22 @@
+
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"> 
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head> 
+<body>
+<div class="container">
+    <div class="row">
+        <div class="container" style="margin-top: 20px">
+            <a href= "{% url 'MovieDBApp:createAudience' %}"><button type="button" class="btn btn-outline-primary slideup">Add Audience</button></a>
+            <a href= "{% url 'MovieDBApp:createDirector' %}"><button type="button" class="btn btn-outline-primary slideup">Add Director</button></a>
+            <a href= "{% url 'MovieDBApp:deleteAudience' %}"><button type="button" class="btn btn-outline-primary slideright">Delete Audience</button></a> 
+            <a href= "{% url 'MovieDBApp:updatePlatform' %}"><button type="button" class="btn btn-outline-primary slideleft">Update Platform of Directors</button></a>
+        </div>
+    </div>
+</div>
+
+</body> 
+</html>

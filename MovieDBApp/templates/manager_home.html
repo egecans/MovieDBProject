@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <title>Home</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"> 
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  </head>
+  <body>
+    {% include "manager_button.html" %}
+  </body>
+
+  <div class="row">
+    <div class="col-md-5">
+      <div class="card card-body">
+          <h2 style="color: navy;">
+              Directors
+          </h2>
+          <table class="table table-sm">
+              <tr>
+                  <th>Username</th>
+                  <th>Name</th>
+                  <th>Surname</th>
+                  <th>Nation</th>
+                  <th>Platform ID</th>
+              </tr>
+              {% for director in directors %}     
+              <tr>
+                  <td>{{director.username}}</td>
+                  <td>{{director.name}}</td>
+                  <td>{{director.surname}}</td>
+                  <td>{{director.nation}}</td>
+                  <td>{{director.platform_id}}</td>
+              </tr>
+              {% endfor%}                 
+          </table>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="card card-body">
+          <h2 style="color: navy;">
+              Audiences
+          </h2>
+          <table class="table table-sm">
+              <tr>
+                  <th>Username</th>
+                  <th>Name</th>
+                  <th>Surname</th>
+              </tr>
+              {% for audience in audiences %}     
+              <tr>  
+                  <td>{{audience.username}}</td>
+                  <td>{{audience.name}}</td>
+                  <td>{{audience.surname}}</td>
+              </tr>
+              {% endfor%}                 
+          </table>
+      </div>
+    </div>
+
+  </div>
+</html>

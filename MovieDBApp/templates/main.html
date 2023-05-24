@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Main Page</title>
+</head>
+<body>
+    <h1>Welcome to the Movie Database Management System</h1>
+    <div>
+        <h2>Select your role:</h2>
+        <ul>
+            <li><a href="{% url 'MovieDBApp:loginManager' %}">Login as a Database Manager</a></li>
+            <li><a href="{% url 'MovieDBApp:loginDirector' %}">Login as a Director</a></li>
+        </ul>
+    </div>
+</body>
+</html>
