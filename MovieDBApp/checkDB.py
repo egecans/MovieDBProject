@@ -223,11 +223,15 @@ def getMovieDuration(movie_id): # get duration of movie
 
 
 #
-def addMovieRelations(time_slot, date, movie_id, theatre_id):
-    session_id = str(movie_id) + str(theatre_id) + str(time_slot) #it must be unique!
-    addMovieSession(session_id,date,time_slot)
-    addPlay(session_id,movie_id)
-    addLocated(session_id, theatre_id)
+def addMovieRelations(time_slot, date, movie_id, theatre_id): # if time credentials are ok (theatre is available for this movie) this func is insert movie session and corresponding relations play and located
+    if (checkTimeOK(theatre_id,date,movie_id, time_slot)):
+        session_id = str(movie_id) + str(theatre_id) + str(time_slot) #it must be unique!
+        addMovieSession(session_id,date,time_slot)
+        addPlay(session_id,movie_id)
+        addLocated(session_id, theatre_id)
+        return True
+    else: #if it couldn't insert return Fase
+        return False
 
 
 def addMovieSession(session_id, date, time_slot): #add Movie Session to Database
@@ -256,13 +260,38 @@ def addLocated(session_id, theatre_id): #add Located relation between Movie Sess
 
 #theatre_id de lazım
 #data de lazım
-def checkTimeOK(movie_id, time_slot): #in this function it checks, whether duration of movie and time slot is ok for add the movie session. It needs to be <= 4
+def checkTimeOK(theatre_id,date,movie_id, time_slot): #in this function it checks, whether duration of movie and time slot is ok for add the movie session. It needs to be <= 4
     movie_duration = getMovieDuration(movie_id)
-    if (int(time_slot) + int(movie_duration) <= 4): #if it is smaller than 5 because there are 1,2,3,4 slots in theatres.
-        #locateddan theatre'ın movie sessionlarına bak var mı diye çok şey var kolayla başla
-        return True
-    
-    return False
+    print("2")
+    if (int(time_slot) + int(movie_duration) < 6): #if it is smaller than 6 in slot 4 duration 1 it's 5 because there are 1,2,3,4 slots in theatres.
+        cur = conn.cursor()
+        print("1")
+
+        sql_query = "SELECT S.time_slot, MOV.duration from public.located L, public.movie_session S, public.directed_movie MOV, public.play PL WHERE L.theatre_id = %s and  L.session_id = S.session_id and  S.date = %s and PL.session_id = S.session_id and PL.movie_id = MOV.movie_id ;"
+        #it returns not available slot and duration of movie on that slot, with these informations we calculate which slots are not ok.
+        values = (theatre_id, date)
+        cur.execute(sql_query, values)
+        rows = cur.fetchall()
+        print(rows)
+        cur.close()
+        if (rows == []): # if it is fully available
+            return True
+        
+        available_slots = [1,2,3,4]
+        for tuple in rows:
+            not_ok_slots_until = tuple[0] + tuple[1] # i.e (1,2) 1+2 until 3 it's not available 
+            for i in range(tuple[0],not_ok_slots_until): # in range [1,3) remove the values from range and the rest of them are available
+                available_slots.remove(i)
+        print(available_slots)
+        if time_slot in available_slots:
+            return True
+        # locateddan theatre idsi girilince movie sessionlarına bak var mı diye çok şey var kolayla başla
+        # playdan movie sessions'ın IDsiyle movie'sini bul
+        # movie'nin durationını çek
+        # x = movie session'ın time slotu çektim
+        # y = time slot + durationı hesapla.
+        # 1,4 araında x,y range'inde olmayan ne varsa availabledır.
+
 
 #dene
 def getSessionIDs(theatre_id):

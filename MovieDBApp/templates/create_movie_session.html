@@ -30,4 +30,8 @@
              <input class="btn login_btn" type="submit" value="Create Movie Session">
         </div>
     
+    {% for message in messages %}
+        <p id="messages"> {{message}} </p>
+    {% endfor %}
+
 </form>

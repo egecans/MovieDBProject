@@ -39,6 +39,7 @@ def loginDBManager(request):
 def homeDBManager(request):
     all_directors_list = getAllDirectors()
     all_audiences_list = getAllAudiences()
+    checkTimeOK(40001,'2023-05-25',2, 4)
     context={'directors':all_directors_list, 'audiences':all_audiences_list}
     return render(request,'manager_home.html',context)
 
@@ -171,12 +172,15 @@ def createMovieSession(request):
         if (movie_id.isdigit() and time_slot.isdigit() and theatre_id.isdigit()): #check ID and duration is digit
             int_time_slot = int(time_slot)
             if (int_time_slot > 0 and int_time_slot < 5): #check duration is in range [1,4]
-                addMovieRelations(time_slot, date, movie_id, theatre_id)
-                return redirect('/directorHome')
+                if (addMovieRelations(time_slot, date, movie_id, theatre_id)):
+                    return redirect('/directorHome')
+                else:
+                   messages.info(request, 'Your entered credentials not OK, (Duration + time slot <= 5) or given theatre is not available in this slot') 
+                
             else:
-              messages.info(request, 'Duration must be integer and in range [1,4] and !')  
+              messages.info(request, 'Time slot only can be 1,2,3 or 4 !')  
         else:
-            messages.info(request, 'Duration and Movie ID must be integer !')
+            messages.info(request, 'Movie ID and Time Slot and Theatre ID must be integer !')
 
     context={}
     return render(request,'create_movie_session.html',context)
