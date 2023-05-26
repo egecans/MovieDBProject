@@ -20,6 +20,7 @@ urlpatterns = [
     path('createDirector',views.createDirector,name='createDirector'),
     path('deleteAudience/', views.removeAudience, name='deleteAudience'),
     path('updateplatform/', views.updatePlatform, name='updatePlatform'),
+    path('createTheatre/',views.createTheatre, name='createTheatre'),
 
     path('loginDirector/',views.loginDirector,name='loginDirector'),
     path('directorHome/', views.homeDirector, name='homeDirector'),

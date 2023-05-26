@@ -73,6 +73,15 @@ def addAudience(name, surname, username, password): #add audience to database
     conn.commit()
     cur.close()
 
+#
+def addTheatre(district, theatre_name, capacity, theatre_id):
+    cur = conn.cursor()
+    sql_query = "INSERT INTO public.theatre (district, theatre_name, capacity, theatre_id) VALUES (%s, %s, %s, %s);"
+    values = (district, theatre_name, capacity, theatre_id)
+    cur.execute(sql_query, values)
+    conn.commit()
+    cur.close()
+
 def getAllDirectors(): #get all directors
     cur = conn.cursor()
     sql_query = "SELECT * FROM public.director ORDER BY username ASC"

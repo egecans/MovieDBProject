@@ -77,6 +77,24 @@ def createAudience(request):
     context = {}
     return render(request,'create_audience.html',context)
 
+#
+#addTheatre(district, theatre_name, capacity, theatre_id)
+def createTheatre(request):
+    if request.method == "POST": #if method is POST (when form clicked Create button form is returned as POST) this is the communication btw frontend and this method
+        theatre_id = request.POST.get('theatre_id') #get attributes from frontend
+        theatre_name = request.POST.get('theatre_name')
+        district = request.POST.get('district')
+        capacity  = request.POST.get('capacity')
+        #if attributes isn't blank (except platform) and has a unique username
+        if (theatre_id != "" and capacity != "" and theatre_name != "" and district != ""):
+            addTheatre(district, theatre_name, capacity, theatre_id)
+            return redirect('/manager_home/') #return to manager's home
+        else:
+            messages.info(request, 'You must enter all credentials!')
+
+    context = {}
+    return render(request,'create_theatre.html',context)
+
 def updatePlatform (request):
     if request.method == "POST":
         director_username = request.POST.get('director_username')
