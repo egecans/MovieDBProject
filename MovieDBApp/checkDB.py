@@ -211,3 +211,68 @@ class Theatre_class: #this is for holding theatres in a list (to show them in ht
     self.theatre_name = theatre_name
     self.capacity = capacity
     self.theatre_id = theatre_id
+
+def getMovieDuration(movie_id): # get duration of movie
+    cur = conn.cursor()
+    sql_query = "SELECT duration FROM public.directed_movie WHERE movie_id = " + str(movie_id)
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    my_row = regulate_rows(rows)
+    cur.close()
+    return my_row[1]
+
+
+#
+def addMovieRelations(time_slot, date, movie_id, theatre_id):
+    session_id = str(movie_id) + str(theatre_id) + str(time_slot) #it must be unique!
+    addMovieSession(session_id,date,time_slot)
+    addPlay(session_id,movie_id)
+    addLocated(session_id, theatre_id)
+
+
+def addMovieSession(session_id, date, time_slot): #add Movie Session to Database
+    cur = conn.cursor()
+    sql_query = "INSERT INTO public.movie_session (date, time_slot, session_id) VALUES (%s, %s, %s);"
+    values = (date, time_slot, session_id)
+    cur.execute(sql_query, values)
+    conn.commit()
+    cur.close()
+
+def addPlay(session_id, movie_id): #add Play relation between Movie Session and Movie
+    cur = conn.cursor()
+    sql_query = "INSERT INTO public.play (session_id, movie_id) VALUES (%s, %s);"
+    values = (session_id,movie_id)
+    cur.execute(sql_query, values)
+    conn.commit()
+    cur.close()
+
+def addLocated(session_id, theatre_id): #add Located relation between Movie Session and Theatre
+    cur = conn.cursor()
+    sql_query = "INSERT INTO public.located (session_id, theatre_id) VALUES (%s, %s);"
+    values = (session_id,theatre_id)
+    cur.execute(sql_query, values)
+    conn.commit()
+    cur.close()
+
+#theatre_id de lazım
+#data de lazım
+def checkTimeOK(movie_id, time_slot): #in this function it checks, whether duration of movie and time slot is ok for add the movie session. It needs to be <= 4
+    movie_duration = getMovieDuration(movie_id)
+    if (int(time_slot) + int(movie_duration) <= 4): #if it is smaller than 5 because there are 1,2,3,4 slots in theatres.
+        #locateddan theatre'ın movie sessionlarına bak var mı diye çok şey var kolayla başla
+        return True
+    
+    return False
+
+#dene
+def getSessionIDs(theatre_id):
+    cur = conn.cursor()
+    sql_query = "SELECT session_id FROM public.located WHERE theatre_id = " + str(theatre_id)
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    my_rows = []
+    for row in rows: # instead of writing ('BollywoodIMDB       ',) 
+        my_rows.append(regulate_rows(row))
+    cur.close()
+    return my_rows
+    

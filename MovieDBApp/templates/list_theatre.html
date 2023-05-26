@@ -11,8 +11,31 @@
              <input class="btn login_btn" type="submit" value="List Available Theaters">
         </div>
     
-    {% for message in messages %}
-        <p id="messages"> {{message}} </p>
-    {% endfor %}
+        <div class="row">
+            <div class="col-md-5">
+              <div class="card card-body">
+                  <h2 style="color: navy;">
+                      Directors
+                  </h2>
+                  <table class="table table-sm">
+                      <tr>
+                          <th>Theatre Name</th>
+                          <th>Theatre ID</th>
+                          <th>District</th>
+                          <th>Capacity</th>
+                      </tr>
+                      {% for theatre in theatres %}     
+                      <tr>
+                          <td>{{theatre.theatre_name}}</td>
+                          <td>{{theatre.theatre_id}}</td>
+                          <td>{{theatre.district}}</td>
+                          <td>{{theatre.capacity}}</td>
+                      </tr>
+                      {% endfor%}                 
+                  </table>
+              </div>
+            </div>
+        </div>
+
     
 </form>

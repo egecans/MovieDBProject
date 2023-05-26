@@ -39,7 +39,6 @@ def loginDBManager(request):
 def homeDBManager(request):
     all_directors_list = getAllDirectors()
     all_audiences_list = getAllAudiences()
-    print(getMovieDuration(1))
     context={'directors':all_directors_list, 'audiences':all_audiences_list}
     return render(request,'manager_home.html',context)
 
@@ -162,11 +161,32 @@ def createMovie(request,director_name): # has a dynamic url because we need to p
     context={'username':director_name}
     return render(request,'create_movie.html',context)
 
+def createMovieSession(request):  
+    if request.method == "POST":
+        movie_id = request.POST.get('movie_id') #get attributes from frontend
+        time_slot = request.POST.get('time_slot')
+        date = request.POST.get('date')
+        theatre_id = request.POST.get('theatre_id')
+        print(movie_id, time_slot, date, theatre_id)
+        if (movie_id.isdigit() and time_slot.isdigit() and theatre_id.isdigit()): #check ID and duration is digit
+            int_time_slot = int(time_slot)
+            if (int_time_slot > 0 and int_time_slot < 5): #check duration is in range [1,4]
+                addMovieRelations(time_slot, date, movie_id, theatre_id)
+                return redirect('/directorHome')
+            else:
+              messages.info(request, 'Duration must be integer and in range [1,4] and !')  
+        else:
+            messages.info(request, 'Duration and Movie ID must be integer !')
+
+    context={}
+    return render(request,'create_movie_session.html',context)
+
+
+
 def listTheatres(request):
     all_theatres_list = getListTheatres()
-    context={'theatres':all_theatres_list}
-    if request.method == 'POST':
-        for theatre in all_theatres_list:
-            print(theatre.district)
+    context = {'theatres':[]}
+    if request.method == 'POST': # if click button
+        context={'theatres':all_theatres_list}
     return render(request,'list_theatre.html',context)
 
