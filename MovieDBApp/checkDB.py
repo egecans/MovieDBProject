@@ -181,6 +181,14 @@ def checkDirectorCredentials(username, pw): #check director's credentials from d
     cur.close()
     return(len(rows)==1)
 
+def checkAudienceCredentials(username, pw): #check director's credentials from database
+    cur = conn.cursor()
+    sql_query = "SELECT * FROM public.audience WHERE username = '" +username + "' AND password = '" + pw + "'" 
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    cur.close()
+    return(len(rows)==1)
+
 
 def addMovie(movie_id, movie_name, duration, director_name): #add audience to database
     cur = conn.cursor()
@@ -190,14 +198,15 @@ def addMovie(movie_id, movie_name, duration, director_name): #add audience to da
     conn.commit()
     cur.close()
 
-def getListTheatres(): #list available theaters for given slot
+def getListTheatres(given_slot): #list available theaters for given slot
     cur = conn.cursor()
-    sql_query = "SELECT * FROM public.theatre;"
+    sql_query = "SELECT district, theatre_name, capacity, theatre_id FROM public.theatre WHERE theatre_id NOT IN(SELECT T.theatre_id FROM public.theatre T INNER JOIN public.located L ON T.theatre_id = L.theatre_id INNER JOIN public.movie_session S ON L.session_id = S.session_id WHERE S.time_slot ="+given_slot+");"
     cur.execute(sql_query)
     rows = cur.fetchall()
     all_theaters = [] 
     for row in rows:
-        lst = []
+        print(row)
+        lst=[]
         for attributes in row:
             lst.append(regulate_rows(attributes))
         theatre = Theatre_class(lst[0],lst[1],lst[2], lst[3])
@@ -304,4 +313,38 @@ def getSessionIDs(theatre_id):
         my_rows.append(regulate_rows(row))
     cur.close()
     return my_rows
-    
+
+def addNextTo(pre, suc): #add predecessor to database
+    cur = conn.cursor()
+    sql_query = "INSERT INTO public.next_to (pre_id, suc_id) VALUES (%s, %s);"
+    values = (pre, suc)
+    cur.execute(sql_query, values)
+    conn.commit()
+    cur.close()
+
+def getAllMovies():
+    cur = conn.cursor()
+    sql_query = "SELECT DM.movie_id, DM.movie_name, D.surname AS director_surname, P.platform_name AS platform, T.theatre_id, MS.time_slot, STRING_AGG(CAST(N.pre_id AS TEXT), ', ') AS predecessors_list FROM Directed_Movie DM INNER JOIN Director D ON DM.username = D.username INNER JOIN Platform P ON DM.avg_rating = P.platform_id INNER JOIN Play PY ON DM.movie_id = PY.movie_id INNER JOIN Movie_Session MS ON PY.session_id = MS.session_id INNER JOIN Located L ON MS.session_id = L.session_id INNER JOIN Theatre T ON L.theatre_id = T.theatre_id LEFT JOIN Next_To N ON DM.movie_id = N.suc_id GROUP BY DM.movie_id, DM.movie_name, D.surname, P.platform_name, T.theatre_id, MS.time_slot;"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    all_movies = [] 
+    for row in rows:
+        print(row)
+        lst=[]
+        for attributes in row:
+            lst.append(regulate_rows(attributes))
+        movie = Movie_class(lst[0],lst[1],lst[2], lst[3], lst[4], lst[5])
+        all_movies.append(movie)
+    cur.close()
+    return all_movies
+
+
+class Movie_class: #this is for holding movies in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, movie_id, movie_name, surname, platform, theatre_id, time_slot, predecessors_list):
+    self.movie_id = movie_id
+    self.movie_name = movie_name
+    self.surname = surname
+    self.platform = platform
+    self.theatre_id = theatre_id
+    self.time_slot = time_slot
+    self.predecessors_list = predecessors_list

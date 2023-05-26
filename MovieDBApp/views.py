@@ -142,6 +142,34 @@ def homeDirector(request):
     context={'username':director_name}
     return render(request,'director_home.html',context)
 
+def loginAudience(request):
+    if request.method == "POST": #burada fronttan backe geri dönüyor
+        aud_name = request.POST.get('username')
+        password = request.POST.get('password')
+        checkCredentials = checkAudienceCredentials(aud_name, password) #it checks whether credentials are correct in db
+        if (checkCredentials):
+            request.session['username'] = aud_name #in this way data is stored you can get value with  request.session.get('username') function
+            return redirect('/audienceHome')
+        else:
+            messages.info(request, 'username or password is incorrect!')
+    context={}
+    return render(request,'audience_login.html',context) #html dosyası ismi
+
+def homeAudience(request):
+    aud_name = request.session.get('username')
+    all_movies_list = getAllMovies()
+    context={'username':aud_name,'movies':all_movies_list}
+    return render(request,'audience_home.html',context)
+
+def listAllMovies(request):
+    context={'movies':[]}
+    if request.method == "POST":
+        all_movies_list = getAllMovies()
+        print(all_movies_list)
+        print("hey")
+        context={'movies':all_movies_list}
+    return render(request,'audience_home.html',context)
+
 def createMovie(request,director_name): # has a dynamic url because we need to pass data from html, so we couldn't use request.session method 
     if request.method == "POST": #if method is POST (when form clicked Create button form is returned as POST) this is the communication btw frontend and this method
         movie_id = request.POST.get('movie_id') #get attributes from frontend
@@ -186,11 +214,23 @@ def createMovieSession(request):
     return render(request,'create_movie_session.html',context)
 
 
-
 def listTheatres(request):
-    all_theatres_list = getListTheatres()
-    context = {'theatres':[]}
-    if request.method == 'POST': # if click button
+    context = {}
+    if request.method == "POST":
+        given_slot = request.POST.get('given_slot')
+        all_theatres_list = getListTheatres(given_slot)
         context={'theatres':all_theatres_list}
     return render(request,'list_theatre.html',context)
 
+def addPredecessor(request): # has a dynamic url because we need to pass data from html, so we couldn't use request.session method 
+    if request.method == "POST": #if method is POST (when form clicked Create button form is returned as POST) this is the communication btw frontend and this method
+        pre = request.POST.get('pre_id') #get attributes from frontend
+        suc = request.POST.get('suc_id')
+        #print(pre,suc)
+        #if attributes isn't blank (except platform) and has a unique username
+    #    if (pre.isdigit() and suc.isdigit()): #check ID and duration is digit
+        addNextTo(pre, suc)
+     #   else:
+      #      messages.info(request, 'ID must be integer !')
+
+    return render(request,'add_predecessor.html',{})
