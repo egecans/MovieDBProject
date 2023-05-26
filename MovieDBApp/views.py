@@ -39,6 +39,7 @@ def loginDBManager(request):
 def homeDBManager(request):
     all_directors_list = getAllDirectors()
     all_audiences_list = getAllAudiences()
+    print(getMovieDuration(1))
     context={'directors':all_directors_list, 'audiences':all_audiences_list}
     return render(request,'manager_home.html',context)
 
