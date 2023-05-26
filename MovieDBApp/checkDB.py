@@ -189,3 +189,25 @@ def addMovie(movie_id, movie_name, duration, director_name): #add audience to da
     cur.execute(sql_query, values)
     conn.commit()
     cur.close()
+
+def getListTheatres(): #list available theaters for given slot
+    cur = conn.cursor()
+    sql_query = "SELECT * FROM public.theatre;"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    all_theaters = [] 
+    for row in rows:
+        lst = []
+        for attributes in row:
+            lst.append(regulate_rows(attributes))
+        theatre = Theatre_class(lst[0],lst[1],lst[2], lst[3])
+        all_theaters.append(theatre)
+    cur.close()
+    return all_theaters
+
+class Theatre_class: #this is for holding theatres in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, district, theatre_name, capacity, theatre_id):
+    self.district = district
+    self.theatre_name = theatre_name
+    self.capacity = capacity
+    self.theatre_id = theatre_id

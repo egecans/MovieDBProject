@@ -25,5 +25,5 @@ urlpatterns = [
     path('loginDirector/',views.loginDirector,name='loginDirector'),
     path('directorHome/', views.homeDirector, name='homeDirector'),
     path('createMovie/<str:director_name>/', views.createMovie, name='createMovie'), #dynamic url, has a parameter director_name which pass as a parameter to its method createMovie
-
+    path('listTheatres/', views.listTheatres, name='listTheatres'),
 ]

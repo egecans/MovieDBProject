@@ -161,3 +161,11 @@ def createMovie(request,director_name): # has a dynamic url because we need to p
     context={'username':director_name}
     return render(request,'create_movie.html',context)
 
+def listTheatres(request):
+    all_theatres_list = getListTheatres()
+    context={'theatres':all_theatres_list}
+    if request.method == 'POST':
+        for theatre in all_theatres_list:
+            print(theatre.district)
+    return render(request,'list_theatre.html',context)
+
