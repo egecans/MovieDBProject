@@ -27,6 +27,40 @@
             <a href= "{% url 'MovieDBApp:addPredecessor' %}"><button type="button" class="btn btn-outline-primary slideup">Add Predecessor Movie</button></a>
           </div>
 
+          <div class="container" style="margin-top: 20px">
+            <a href= "{% url 'MovieDBApp:getBoughtTickets' %}"><button type="button" class="btn btn-outline-primary slideup">Get Bought Tickets</button></a>
+          </div>
+
+          <div class="container" style="margin-top: 20px">
+            <a href= "{% url 'MovieDBApp:updateMovieName' %}"><button type="button" class="btn btn-outline-primary slideup">Update Movie Name</button></a>
+          </div>
+
+          <div class="col-md">
+                <div class="card card-body">
+                    <h2 style="color: navy;">
+                        Movies
+                    </h2>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Movie ID</th>
+                            <th>Movie Name</th>
+                            <th>Theatre ID</th>
+                            <th>Time Slot</th>
+                            <th>Predecessors</th>
+                        </tr>
+                        {% for movie in movies %}     
+                        <tr>
+                            <td>{{movie.movie_id}}</td>
+                            <td>{{movie.movie_name}}</td>
+                            <td>{{movie.theatre_id}}</td>
+                            <td>{{movie.time_slot}}</td>
+                            <td>{{movie.predecessors_list}}</td>
+                        </tr>
+                        {% endfor%}                 
+                    </table>
+                </div>
+              </div>
+
       </div>
     </div>
   </body>

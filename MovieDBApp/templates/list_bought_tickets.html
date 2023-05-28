@@ -1,0 +1,39 @@
+<form method="POST" action="">
+    {% csrf_token %}
+    <p> Hello Director {{ username }} </p>
+    <div class="input-group mb-3">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-user"></i></span>
+        </div>
+        <input type="text" name="given_movie_id" placeholder="Movie ID" class="form-control">
+    </div>
+        <div class="d-flex justify-content-center mt-3 login_container">
+             <input class="btn login_btn" type="submit" value="Get Bought Tickets">
+        </div>
+    
+        <div class="row">
+            <div class="col-md-5">
+              <div class="card card-body">
+                  <h2 style="color: navy;">
+                      Audiences
+                  </h2>
+                  <table class="table table-sm">
+                      <tr>
+                          <th>Username</th>
+                          <th>Name</th>
+                          <th>Surname</th>
+                      </tr>
+                      {% for audience in audiences %}     
+                      <tr>
+                          <td>{{audience.username}}</td>
+                          <td>{{audience.name}}</td>
+                          <td>{{audience.surname}}</td>
+                      </tr>
+                      {% endfor%}                 
+                  </table>
+              </div>
+            </div>
+        </div>
+
+    
+</form>

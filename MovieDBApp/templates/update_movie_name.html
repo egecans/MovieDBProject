@@ -1,0 +1,24 @@
+<form method="POST" action="">
+    {% csrf_token %}
+    <div class="input-group mb-3">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-user"></i></span>
+        </div>
+        <input type="text" name="movie_name" placeholder="Movie Name..." class="form-control">
+    </div>
+    <div class="input-group mb-3">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-user"></i></span>
+        </div>
+        <input type="text" name="movie_id" placeholder="Movie ID..." class="form-control">
+    </div>
+
+    <div class="d-flex justify-content-center mt-3 login_container">
+        <input class="btn login_btn" type="submit" value="Update Movie Name">
+    </div>
+
+    {% for message in messages %}
+        <p id="messages"> {{message}} </p>
+    {% endfor %}
+
+</form>

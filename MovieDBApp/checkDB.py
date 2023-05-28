@@ -73,7 +73,7 @@ def addAudience(name, surname, username, password): #add audience to database
     conn.commit()
     cur.close()
 
-#
+
 def addTheatre(district, theatre_name, capacity, theatre_id):
     cur = conn.cursor()
     sql_query = "INSERT INTO public.theatre (district, theatre_name, capacity, theatre_id) VALUES (%s, %s, %s, %s);"
@@ -141,6 +141,23 @@ def update_platform(director_username, platform_id):
     conn.commit()
     cur.close()
 
+def buySession(username, session_id):
+    cur = conn.cursor()
+    #sql_query = "INSERT INTO public.buy (username, session_id) SELECT '" + username + "', '" + session_id + "' FROM (SELECT ms.session_id, t.capacity, COUNT(b.session_id) AS sold_tickets FROM public.movie_session ms INNER JOIN public.theatre t ON ms.theatre_id = t.theatre_id LEFT JOIN public.buy b ON ms.session_id = b.session_id WHERE ms.session_id = '" + session_id + "' GROUP BY ms.session_id, t.capacity) AS session_capacity WHERE session_capacity.sold_tickets < session_capacity.capacity AND '" + session_id + "' NOT IN (SELECT session_id FROM public.buy WHERE username = '" + username + "');"
+    values = (username, session_id)
+    print(values)
+    cur.execute(sql_query)
+    conn.commit()
+    cur.close()
+
+def update_movie(movie_name, movie_id):
+    cur = conn.cursor()
+    sql_query = "UPDATE public.directed_movie SET movie_name = %s WHERE movie_id = %s ;"
+    values = (movie_name, movie_id)
+    cur.execute(sql_query, values)
+    conn.commit()
+    cur.close()
+
 def checkDirectorUsername(username): #check whether director or audience has that username
     cur = conn.cursor()
     sql_query = "SELECT * FROM public.director WHERE username = '" +username + "'" #check for directors
@@ -152,6 +169,14 @@ def checkDirectorUsername(username): #check whether director or audience has tha
 def checkPlatformID(platform_id): #check whether director or audience has that username
     cur = conn.cursor()
     sql_query = "SELECT * FROM public.platform WHERE platform_id = '" +platform_id + "'" #check for directors
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    cur.close()
+    return (len(rows) == 1)
+
+def checkMovieID(movie_id): 
+    cur = conn.cursor()
+    sql_query = "SELECT * FROM public.directed_movie WHERE movie_id = '" +movie_id + "'"
     cur.execute(sql_query)
     rows = cur.fetchall()
     cur.close()
@@ -190,13 +215,81 @@ def checkAudienceCredentials(username, pw): #check director's credentials from d
     return(len(rows)==1)
 
 
-def addMovie(movie_id, movie_name, duration, director_name): #add audience to database
+def addMovie(movie_id, movie_name, duration, director_name):
     cur = conn.cursor()
     sql_query = "INSERT INTO public.directed_movie (movie_id, movie_name, duration, username) VALUES (%s, %s, %s, %s);"
     values = (movie_id, movie_name, duration, director_name)
     cur.execute(sql_query, values)
     conn.commit()
     cur.close()
+
+def getRating(username):
+    cur = conn.cursor()
+    sql_query = "SELECT dm.movie_id, dm.movie_name, r.rating FROM public.directed_movie dm INNER JOIN public.rate r ON dm.movie_id = r.movie_id WHERE r.username = '"+username+"';"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    all_ratings = [] 
+    for row in rows:
+        print(row)
+        lst=[]
+        for attributes in row:
+            lst.append(regulate_rows(attributes))
+        rating = Rating_class(lst[0],lst[1],lst[2])
+        all_ratings.append(rating)
+    cur.close()
+    return all_ratings
+
+class Rating_class: #this is for holding theatres in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, movie_id, movie_name, rating):
+    self.movie_id = movie_id
+    self.movie_name = movie_name
+    self.rating = rating
+
+def getDirectorMovie(username):
+    cur = conn.cursor()
+    sql_query = "SELECT dm.movie_id, dm.movie_name, l.theatre_id, t.district, ms.time_slot FROM public.directed_movie dm INNER JOIN public.play p ON dm.movie_id = p.movie_id INNER JOIN public.movie_session ms ON p.session_id = ms.session_id INNER JOIN public.located l ON ms.session_id = l.session_id INNER JOIN public.theatre t ON l.theatre_id = t.theatre_id WHERE dm.username = '"+username+"';"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    all_movies = [] 
+    for row in rows:
+        print(row)
+        lst=[]
+        for attributes in row:
+            lst.append(regulate_rows(attributes))
+        movie = DirectorMovie_class(lst[0],lst[1],lst[2],lst[3],lst[4])
+        all_movies.append(movie)
+    cur.close()
+    return all_movies
+
+class DirectorMovie_class: #this is for holding theatres in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, movie_id, movie_name, theatre_id, district, time_slot):
+    self.movie_id = movie_id
+    self.movie_name = movie_name
+    self.theatre_id = theatre_id
+    self.district = district
+    self.time_slot = time_slot
+
+def getAvgRating(movie_id):
+    cur = conn.cursor()
+    sql_query = "SELECT dm.movie_id, dm.movie_name, AVG(r.rating) AS overall_rating FROM public.directed_movie dm INNER JOIN public.rate r ON dm.movie_id = r.movie_id WHERE dm.movie_id = '"+movie_id+"' GROUP BY dm.movie_id, dm.movie_name;"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    all_ratings = [] 
+    for row in rows:
+        print(row)
+        lst=[]
+        for attributes in row:
+            lst.append(regulate_rows(attributes))
+        rating = AvgRating_class(lst[0],lst[1],lst[2])
+        all_ratings.append(rating)
+    cur.close()
+    return all_ratings
+
+class AvgRating_class: #this is for holding theatres in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, movie_id, movie_name, avg_rating):
+    self.movie_id = movie_id
+    self.movie_name = movie_name
+    self.avg_rating = avg_rating
 
 def getListTheatres(given_slot): #list available theaters for given slot
     cur = conn.cursor()
@@ -324,16 +417,15 @@ def addNextTo(pre, suc): #add predecessor to database
 
 def getAllMovies():
     cur = conn.cursor()
-    sql_query = "SELECT DM.movie_id, DM.movie_name, D.surname AS director_surname, P.platform_name AS platform, T.theatre_id, MS.time_slot, STRING_AGG(CAST(N.pre_id AS TEXT), ', ') AS predecessors_list FROM Directed_Movie DM INNER JOIN Director D ON DM.username = D.username INNER JOIN Platform P ON DM.avg_rating = P.platform_id INNER JOIN Play PY ON DM.movie_id = PY.movie_id INNER JOIN Movie_Session MS ON PY.session_id = MS.session_id INNER JOIN Located L ON MS.session_id = L.session_id INNER JOIN Theatre T ON L.theatre_id = T.theatre_id LEFT JOIN Next_To N ON DM.movie_id = N.suc_id GROUP BY DM.movie_id, DM.movie_name, D.surname, P.platform_name, T.theatre_id, MS.time_slot;"
+    sql_query = "SELECT DM.movie_id, DM.movie_name, D.surname AS director_surname, AG.platform_id AS platform, L.theatre_id, MS.time_slot, STRING_AGG(CAST(N.pre_id AS TEXT), ', ') AS predecessors_list FROM public.directed_movie AS DM INNER JOIN public.director D ON DM.username = D.username INNER JOIN public.play P ON DM.movie_id = P.movie_id INNER JOIN public.movie_session MS ON P.session_id = MS.session_id INNER JOIN public.located L ON MS.session_id = L.session_id LEFT JOIN public.agreement AG ON AG.username = D.username LEFT JOIN public.next_to N ON DM.movie_id = N.suc_id GROUP BY DM.movie_id, D.surname, AG.platform_id, L.theatre_id, MS.time_slot;"
     cur.execute(sql_query)
     rows = cur.fetchall()
-    all_movies = [] 
+    all_movies = []
     for row in rows:
-        print(row)
         lst=[]
         for attributes in row:
             lst.append(regulate_rows(attributes))
-        movie = Movie_class(lst[0],lst[1],lst[2], lst[3], lst[4], lst[5])
+        movie = Movie_class(lst[0],lst[1],lst[2],lst[3], lst[4], lst[5], lst[6])
         all_movies.append(movie)
     cur.close()
     return all_movies
@@ -348,3 +440,49 @@ class Movie_class: #this is for holding movies in a list (to show them in html, 
     self.theatre_id = theatre_id
     self.time_slot = time_slot
     self.predecessors_list = predecessors_list
+
+def getMyMovies(director_name):
+    cur = conn.cursor()
+    sql_query = "SELECT dm.movie_id, dm.movie_name, l.theatre_id, ms.time_slot, (SELECT STRING_AGG(CAST(N.pre_id AS VARCHAR), ', ') FROM public.next_to N WHERE N.suc_id = dm.movie_id) AS predecessors_list FROM public.directed_movie dm INNER JOIN public.play p ON dm.movie_id = p.movie_id INNER JOIN public.movie_session ms ON p.session_id = ms.session_id INNER JOIN public.located l ON ms.session_id = l.session_id WHERE dm.username = '"+director_name+"' ORDER BY dm.movie_id ASC;"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    all_movies = []
+    for row in rows:
+        lst=[]
+        for attributes in row:
+            lst.append(regulate_rows(attributes))
+        movie = myMovie_class(lst[0],lst[1],lst[2],lst[3], lst[4])
+        all_movies.append(movie)
+    cur.close()
+    return all_movies
+
+class myMovie_class: #this is for holding movies in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, movie_id, movie_name, theatre_id, time_slot, predecessors_list):
+    self.movie_id = movie_id
+    self.movie_name = movie_name
+    self.theatre_id = theatre_id
+    self.time_slot = time_slot
+    self.predecessors_list = predecessors_list
+
+
+def getAudsWhoBought(given_movie_id): #list auds who bouht ticket for a specified film
+    cur = conn.cursor()
+    sql_query = "SELECT a.username, a.name, a.surname FROM public.audience a INNER JOIN public.buy b ON a.username = b.username INNER JOIN public.play p ON b.session_id = p.session_id INNER JOIN public.directed_movie dm ON p.movie_id = dm.movie_id WHERE dm.movie_id = "+given_movie_id+";"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    all_auds = []
+    for row in rows:
+        print(row)
+        lst=[]
+        for attributes in row:
+            lst.append(regulate_rows(attributes))
+        aud = Audience_class(lst[0],lst[1],lst[2])
+        all_auds.append(aud)
+    cur.close()
+    return all_auds
+
+class Audience_class: #this is for holding movies in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, username, name, surname):
+    self.username = username
+    self.name = name
+    self.surname = surname

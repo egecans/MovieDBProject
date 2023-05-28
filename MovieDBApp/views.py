@@ -111,6 +111,22 @@ def updatePlatform (request):
     context = {}
     return render(request,'update_platform.html',context)
 
+def updateMovieName (request):
+    if request.method == "POST":
+        movie_name = request.POST.get('movie_name')
+        movie_id = request.POST.get('movie_id')
+        if (movie_name != "" and movie_id != ""):
+            if (checkMovieID(movie_id)):
+                update_movie(movie_name,movie_id)
+                return redirect('/directorHome/')
+            else:
+                messages.info(request, 'Movie name or movie id is incorrect!')
+        else:
+            messages.info(request, 'You must enter all credentials!')
+    context = {}
+    return render(request,'update_movie_name.html',context)
+
+
 def removeAudience (request):
     if request.method == "POST":
         audience_username = request.POST.get('audience_username')
@@ -122,6 +138,35 @@ def removeAudience (request):
     context = {}
     return render(request,'delete_audience.html',context)
 
+def viewRating (request):
+    context = {}
+    if request.method == "POST":
+        audience_username = request.POST.get('audience_username')
+        if (checkAudienceUsername(audience_username)):
+            all_ratings = getRating(audience_username)
+            context={'ratings':all_ratings}
+        else:
+            messages.info(request, 'Entered username is not in our system ')
+    return render(request,'view_rating.html',context)
+
+def viewMovieofDirector (request):
+    context = {}
+    if request.method == "POST":
+        director_username = request.POST.get('director_username')
+        if (checkDirectorUsername(director_username)):
+            all_movies = getDirectorMovie(director_username)
+            context={'movies':all_movies}
+        else:
+            messages.info(request, 'Entered username is not in our system ')
+    return render(request,'view_movie.html',context)
+
+def viewAvgRating (request):
+    context = {}
+    if request.method == "POST":
+        movie_id = request.POST.get('movie_id')
+        avg_rating = getAvgRating(movie_id)
+        context={'ratings':avg_rating}
+    return render(request,'view_avg_rating.html',context)
 
 
 def loginDirector(request):
@@ -139,7 +184,8 @@ def loginDirector(request):
 
 def homeDirector(request):
     director_name = request.session.get('username')
-    context={'username':director_name}
+    all_movies_list = getMyMovies(director_name)
+    context={'username':director_name,'movies':all_movies_list}
     return render(request,'director_home.html',context)
 
 def loginAudience(request):
@@ -161,14 +207,18 @@ def homeAudience(request):
     context={'username':aud_name,'movies':all_movies_list}
     return render(request,'audience_home.html',context)
 
-def listAllMovies(request):
-    context={'movies':[]}
+def buyTicket (request):
+    aud_name = request.session.get('username')
     if request.method == "POST":
-        all_movies_list = getAllMovies()
-        print(all_movies_list)
-        print("hey")
-        context={'movies':all_movies_list}
-    return render(request,'audience_home.html',context)
+        session_id = request.POST.get('session_id')
+        if (session_id != ""):
+            buySession(aud_name, session_id)
+            return redirect('/audienceHome/')
+        else:
+            messages.info(request, 'You must enter all credentials!')
+    context = {}
+    return render(request,'buy_ticket.html',context)
+
 
 def createMovie(request,director_name): # has a dynamic url because we need to pass data from html, so we couldn't use request.session method 
     if request.method == "POST": #if method is POST (when form clicked Create button form is returned as POST) this is the communication btw frontend and this method
@@ -222,6 +272,14 @@ def listTheatres(request):
         context={'theatres':all_theatres_list}
     return render(request,'list_theatre.html',context)
 
+def getBoughtTickets(request):
+    context = {}
+    if request.method == "POST":
+        given_movie_id = request.POST.get('given_movie_id')
+        all_tickets = getAudsWhoBought(given_movie_id)
+        context={'audiences':all_tickets}
+    return render(request,'list_bought_tickets.html',context)
+
 def addPredecessor(request): # has a dynamic url because we need to pass data from html, so we couldn't use request.session method 
     if request.method == "POST": #if method is POST (when form clicked Create button form is returned as POST) this is the communication btw frontend and this method
         pre = request.POST.get('pre_id') #get attributes from frontend
@@ -234,3 +292,4 @@ def addPredecessor(request): # has a dynamic url because we need to pass data fr
       #      messages.info(request, 'ID must be integer !')
 
     return render(request,'add_predecessor.html',{})
+

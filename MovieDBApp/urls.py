@@ -21,6 +21,9 @@ urlpatterns = [
     path('deleteAudience/', views.removeAudience, name='deleteAudience'),
     path('updateplatform/', views.updatePlatform, name='updatePlatform'),
     path('createTheatre/',views.createTheatre, name='createTheatre'),
+    path('viewRating/',views.viewRating, name='viewRating'),
+    path('viewMovieofDirector/',views.viewMovieofDirector, name='viewMovieofDirector'),
+    path('viewAvgRating/',views.viewAvgRating, name='viewAvgRating'),
 
     path('loginDirector/',views.loginDirector,name='loginDirector'),
     path('directorHome/', views.homeDirector, name='homeDirector'),
@@ -28,8 +31,10 @@ urlpatterns = [
     path('listTheatres/', views.listTheatres, name='listTheatres'),
     path('createMovieSession/',views.createMovieSession,name='createMovieSession'),
     path('addPredecessor/', views.addPredecessor, name='addPredecessor'),
+    path('getBoughtTickets/', views.getBoughtTickets, name='getBoughtTickets'),
+    path('updateMovieName/', views.updateMovieName, name='updateMovieName'),
 
     path('loginAudience/',views.loginAudience,name='loginAudience'),
     path('audienceHome/', views.homeAudience, name='homeAudience'),
-    path('listAllMovies/', views.listAllMovies, name='listAllMovies'),
+    path('buyTicket/', views.buyTicket, name='buyTicket'),
 ]
