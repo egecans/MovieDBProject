@@ -1,6 +1,6 @@
 #### To run the program: 
 You can run the app by the following steps:
-1) Open 2019400231_2019400147 folder and app folder.
+1) Open 2019400231_2019400147 folder and MovieDBProject folder.
 2) Create a virtual environment .venv with:
 python3 -m venv myenv  
 3) Activate the virtual environment with:
