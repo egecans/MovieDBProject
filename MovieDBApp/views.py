@@ -1,23 +1,9 @@
-from multiprocessing import context
-import re
-from tokenize import Name
-from django.contrib.auth.forms import UserCreationForm
-from turtle import isvisible
-from unicodedata import name
-from django.shortcuts import get_object_or_404, redirect, render #biz olusturduk
+from django.shortcuts import redirect, render
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.forms import inlineformset_factory  #inline formset için 
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
 from MovieDBApp.checkDB import *
 from MovieDBApp.forms import *
-from django.urls import reverse
 
 
-
-# Create your views here.
 def main(request):
     main_text = "view.main function is called"
     context = {'main_text': main_text}
@@ -185,6 +171,7 @@ def loginDirector(request):
 def homeDirector(request):
     director_name = request.session.get('username')
     all_movies_list = getMyMovies(director_name)
+    print(all_movies_list[0].predecessors_list)
     context={'username':director_name,'movies':all_movies_list}
     return render(request,'director_home.html',context)
 
@@ -207,17 +194,35 @@ def homeAudience(request):
     context={'username':aud_name,'movies':all_movies_list}
     return render(request,'audience_home.html',context)
 
-def buyTicket (request):
-    aud_name = request.session.get('username')
+def buyTicket (request,audience_name): #dynamic url
     if request.method == "POST":
         session_id = request.POST.get('session_id')
         if (session_id != ""):
-            buySession(aud_name, session_id)
+            buySession(audience_name, session_id)
+            request.session['username'] = audience_name
             return redirect('/audienceHome/')
         else:
             messages.info(request, 'You must enter all credentials!')
     context = {}
     return render(request,'buy_ticket.html',context)
+
+
+def myTickets (request,audience_name): #dynamic url
+    movie_sessions = getMyMovieSessions(audience_name)
+    context = {'movie_sessions':movie_sessions}
+    return render(request,'my_tickets.html',context)
+
+
+def rate (request,audience_name): #dynamic url
+    if request.method == "POST":
+         movie_id = request.POST.get('movie_id')
+         print(movie_id)
+         rate = request.POST.get('rate')
+         addRate(audience_name, movie_id, rate)
+         return redirect('/audienceHome')
+    movie_ids = getMoviedIDs(audience_name)
+    context = {'movie_ids':movie_ids}
+    return render(request,'rate_movie.html',context)
 
 
 def createMovie(request,director_name): # has a dynamic url because we need to pass data from html, so we couldn't use request.session method 
@@ -280,16 +285,11 @@ def getBoughtTickets(request):
         context={'audiences':all_tickets}
     return render(request,'list_bought_tickets.html',context)
 
-def addPredecessor(request): # has a dynamic url because we need to pass data from html, so we couldn't use request.session method 
-    if request.method == "POST": #if method is POST (when form clicked Create button form is returned as POST) this is the communication btw frontend and this method
-        pre = request.POST.get('pre_id') #get attributes from frontend
+def addPredecessor(request):
+    if request.method == "POST": 
+        pre = request.POST.get('pre_id') 
         suc = request.POST.get('suc_id')
-        #print(pre,suc)
-        #if attributes isn't blank (except platform) and has a unique username
-    #    if (pre.isdigit() and suc.isdigit()): #check ID and duration is digit
         addNextTo(pre, suc)
-     #   else:
-      #      messages.info(request, 'ID must be integer !')
-
+        return redirect('/directorHome')
     return render(request,'add_predecessor.html',{})
 

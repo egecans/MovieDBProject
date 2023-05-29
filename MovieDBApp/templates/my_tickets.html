@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <title>My Tickets</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"> 
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+
+        <div class="container" style="margin-top: 20px">
+          <a href= "{% url 'MovieDBApp:homeAudience' %}"><button type="button" class="btn btn-outline-primary slideup">Return Home</button></a>
+        </div>
+        
+        </div>
+              <div class="col-md">
+                <div class="card card-body">
+                    <h2 style="color: navy;">
+                        Movies
+                    </h2>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Movie ID</th>
+                            <th>Movie Name</th>
+                            <th>Session ID</th>
+                            <th>My Rating</th>
+                            <th>Avarage Rating</th>
+                        </tr>
+                        {% for session in movie_sessions %}     
+                        <tr>
+                            <td>{{session.movie_id}}</td>
+                            <td>{{session.movie_name}}</td>
+                            <td>{{session.session_id}}</td>
+                            <td>{{session.rating}}</td>
+                            <td>{{session.avg_rating}}</td>
+                        </tr>
+                        {% endfor%}                 
+                    </table>
+                </div>
+              </div>
+          
+          </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -17,6 +17,10 @@
         <input class="btn login_btn" type="submit" value="Update Movie Name">
     </div>
 
+    <div class="container" style="margin-top: 20px">
+        <a href= "{% url 'MovieDBApp:homeDirector' %}"><button type="button" class="btn btn-outline-primary slideup">Back Director Home Page</button></a>
+      </div>
+
     {% for message in messages %}
         <p id="messages"> {{message}} </p>
     {% endfor %}

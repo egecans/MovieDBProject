@@ -10,6 +10,7 @@
   <body>
     <p>Hello {{ username }}! You can choose a button</p>
     <div class="container">
+
       <div class="row">
           <div class="container" style="margin-top: 20px">
               <a href= "{% url 'MovieDBApp:createMovie' username %}"><button type="button" class="btn btn-outline-primary slideup">Add Movie</button></a>
@@ -33,6 +34,10 @@
 
           <div class="container" style="margin-top: 20px">
             <a href= "{% url 'MovieDBApp:updateMovieName' %}"><button type="button" class="btn btn-outline-primary slideup">Update Movie Name</button></a>
+          </div>
+
+          <div class="container" style="margin-top: 20px">
+            <a href= "{% url 'MovieDBApp:main' %}"><button type="button" class="btn btn-outline-primary slideup">Logout</button></a>
           </div>
 
           <div class="col-md">

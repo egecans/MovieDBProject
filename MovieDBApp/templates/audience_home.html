@@ -12,7 +12,21 @@
     <div class="container">
       <div class="row">
         <div class="container" style="margin-top: 20px">
-          <a href= "{% url 'MovieDBApp:buyTicket' %}"><button type="button" class="btn btn-outline-primary slideup">Buy Ticket</button></a>
+          <a href= "{% url 'MovieDBApp:buyTicket' username %}"><button type="button" class="btn btn-outline-primary slideup">Buy Ticket</button></a>
+        </div>
+
+        <div class="container" style="margin-top: 20px">
+          <a href= "{% url 'MovieDBApp:myTickets' username %}"><button type="button" class="btn btn-outline-primary slideup">My Tickets</button></a>
+        </div>
+
+        <div class="container" style="margin-top: 20px">
+          <a href= "{% url 'MovieDBApp:rate' username %}"><button type="button" class="btn btn-outline-primary slideup">Rate Movie</button></a>
+        </div>
+
+        <div class="container" style="margin-top: 20px">
+          <a href= "{% url 'MovieDBApp:main' %}"><button type="button" class="btn btn-outline-primary slideup">Logout</button></a>
+        </div>
+        
         </div>
               <div class="col-md">
                 <div class="card card-body">

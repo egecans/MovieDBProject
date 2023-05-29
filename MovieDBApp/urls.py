@@ -36,5 +36,7 @@ urlpatterns = [
 
     path('loginAudience/',views.loginAudience,name='loginAudience'),
     path('audienceHome/', views.homeAudience, name='homeAudience'),
-    path('buyTicket/', views.buyTicket, name='buyTicket'),
+    path('buyTicket/<str:audience_name>/', views.buyTicket, name='buyTicket'),
+    path('myTickets/<str:audience_name>/', views.myTickets, name='myTickets'),
+    path('rateMovie/<str:audience_name>/', views.rate, name='rate'),
 ]

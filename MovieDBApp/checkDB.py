@@ -141,14 +141,104 @@ def update_platform(director_username, platform_id):
     conn.commit()
     cur.close()
 
-def buySession(username, session_id):
-    cur = conn.cursor()
-    #sql_query = "INSERT INTO public.buy (username, session_id) SELECT '" + username + "', '" + session_id + "' FROM (SELECT ms.session_id, t.capacity, COUNT(b.session_id) AS sold_tickets FROM public.movie_session ms INNER JOIN public.theatre t ON ms.theatre_id = t.theatre_id LEFT JOIN public.buy b ON ms.session_id = b.session_id WHERE ms.session_id = '" + session_id + "' GROUP BY ms.session_id, t.capacity) AS session_capacity WHERE session_capacity.sold_tickets < session_capacity.capacity AND '" + session_id + "' NOT IN (SELECT session_id FROM public.buy WHERE username = '" + username + "');"
-    values = (username, session_id)
-    print(values)
+
+#session ID gircem
+def checkUserCanBuy(username, session_id):
+    cur = conn.cursor() #retrieve the movie sessions audience bought.
+    sql_query = "SELECT session_id FROM public.buy WHERE username = '" + username +"';" #check the session's audience bought.
     cur.execute(sql_query)
-    conn.commit()
+    rows = cur.fetchall()
     cur.close()
+    list_of_bought_sessions = []
+    for row in rows:
+        list_of_bought_sessions.append(regulate_rows(row))
+    if (session_id in list_of_bought_sessions): #if user has already buy a ticket this session before
+        print("ALINMIŞ")
+        return False
+    
+    cur = conn.cursor() #retrieve the movies audience bought.
+    sql_query = "SELECT Pl.movie_id FROM public.buy B , public.play Pl WHERE username = '" + username +"' and Pl.session_id = B.session_id;" 
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    cur.close()
+    list_of_bought_movies = []
+    for row in rows:
+        list_of_bought_movies.append(regulate_rows(row))
+
+
+    cur = conn.cursor() #get predecessors of the movie in selected session
+    sql_query = "SELECT pre_id FROM public.play Pl, public.next_to Nt WHERE Pl.session_id = " + session_id + " and Pl.movie_id = Nt.suc_id;" 
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    cur.close()
+    list_of_predecessors = []
+    for row in rows:
+        list_of_predecessors.append(regulate_rows(row))
+
+    if (is_sublist(list_of_predecessors, list_of_bought_movies)): #if user buy tickets for all predecessors of the movie in the movie session
+        print("PRELER İZLENMİŞ")
+        cur = conn.cursor() #get the date of session
+        sql_query = "SELECT date FROM public.movie_session WHERE session_id = " + session_id + ";" 
+        cur.execute(sql_query)
+        session_date = cur.fetchall()[0][0]
+        print(session_date)
+        #get movie id and date of all predecessors which watched by audience
+        sql_query = "SELECT PlSuc.movie_id, Ms.date FROM public.play PlSuc, public.movie_session Ms, public.Buy B WHERE PlSuc.session_id = Ms.session_id and B.username = %s and B.session_id = Ms.session_id and PlSuc.movie_id IN (SELECT pre_id FROM public.play Pl, public.next_to Nt WHERE Pl.session_id = %s and Pl.movie_id = Nt.suc_id);"
+        values = (username, session_id)
+        cur.execute(sql_query,values)
+        bought_pre_dates = cur.fetchall()
+        cur.close()
+        print(bought_pre_dates)
+        min_dates_dict = {}
+        for rows in bought_pre_dates:
+            current_movie_id = rows[0]
+            current_session_date = rows[1]
+            if current_movie_id  in min_dates_dict: #if user watch predecessor movie more than 1 time
+                if min_dates_dict.get(current_movie_id) > current_session_date: #if existed date is bigger than current one change its date
+                    min_dates_dict[current_movie_id] = current_session_date 
+            else: #if it is not in the dictionary insert it
+                min_dates_dict[current_movie_id] = current_session_date
+
+        values_list = list(min_dates_dict.values()) #convert it to list
+        for date in values_list: #dates are predecessor dates of the current movie of the session
+            if date > session_date: #if any predecessor's min date is bigger than current session return false
+                return False
+        
+        return True
+    else:
+        return False
+
+def capacity_ok(session_id): #check if capacity is ok
+    cur = conn.cursor() #get the date of session
+    sql_query = "SELECT CASE WHEN ((SELECT Th.capacity FROM public.theatre Th, public.located WHERE located.session_id = %s and located.theatre_id = Th.theatre_id) > (SELECT COUNT(*) FROM public.buy WHERE session_id = %s)) THEN 'TRUE' ELSE 'FALSE' END AS can_buy;" 
+    cur.execute(sql_query,(session_id,session_id))
+    result = cur.fetchone()[0]
+    cur.close()
+    print(result)
+    if result == "TRUE":
+        return True
+    return False
+
+
+def is_sublist(sub, main):
+    set1 = set(sub)
+    set2 = set(main)
+    return set1.issubset(set2)
+
+def buySession(username, session_id):
+    if (checkUserCanBuy(username, session_id) and capacity_ok(session_id)): #if user can buy a session with given constraints
+        cur = conn.cursor()
+        sql_query = "INSERT INTO public.buy (username, session_id) VALUES (%s, %s);"
+        values = (username, session_id)
+        print(values)
+        cur.execute(sql_query, values)
+        conn.commit()
+        cur.close()
+        return True
+    else:
+        return False
+    
+    
 
 def update_movie(movie_name, movie_id):
     cur = conn.cursor()
@@ -387,15 +477,10 @@ def checkTimeOK(theatre_id,date,movie_id, time_slot): #in this function it check
         print(available_slots)
         if time_slot in available_slots:
             return True
-        # locateddan theatre idsi girilince movie sessionlarına bak var mı diye çok şey var kolayla başla
-        # playdan movie sessions'ın IDsiyle movie'sini bul
-        # movie'nin durationını çek
-        # x = movie session'ın time slotu çektim
-        # y = time slot + durationı hesapla.
-        # 1,4 araında x,y range'inde olmayan ne varsa availabledır.
+        return False
+    else:
+        return False
 
-
-#dene
 def getSessionIDs(theatre_id):
     cur = conn.cursor()
     sql_query = "SELECT session_id FROM public.located WHERE theatre_id = " + str(theatre_id)
@@ -406,6 +491,26 @@ def getSessionIDs(theatre_id):
         my_rows.append(regulate_rows(row))
     cur.close()
     return my_rows
+
+def getMyMovieSessions(username):
+    cur = conn.cursor()
+    sql_query = "SELECT DM.movie_id, DM.movie_name, B.session_id, R.rating, avg_rating.avg_rating FROM public.buy B JOIN public.play Pl ON B.session_id = Pl.session_id JOIN public.directed_movie DM ON Pl.movie_id = DM.movie_id LEFT JOIN public.rate R ON R.username = %s AND R.movie_id = DM.movie_id LEFT JOIN (SELECT movie_id, SUM(rating)/COUNT(*) AS avg_rating FROM public.rate WHERE rating IS NOT NULL GROUP BY movie_id) AS avg_rating ON avg_rating.movie_id = DM.movie_id WHERE B.username = %s;"    
+    cur.execute(sql_query,(username,username))
+    rows = cur.fetchall()
+    cur.close()
+    my_sessions=[]
+    for tuple in rows:
+        my_sessions.append(MySessions_class(tuple[0],regulate_rows(tuple[1]),tuple[2],tuple[3],tuple[4]))
+    return my_sessions
+
+class MySessions_class: #this is for holding movies in a list (to show them in html, html couldn't get index of list)
+  def __init__(self, movie_id, movie_name, session_id, rating, avg_rating):
+    self.movie_id = movie_id
+    self.movie_name = movie_name
+    self.session_id = session_id
+    self.rating = rating
+    self.avg_rating = avg_rating
+
 
 def addNextTo(pre, suc): #add predecessor to database
     cur = conn.cursor()
@@ -423,8 +528,11 @@ def getAllMovies():
     all_movies = []
     for row in rows:
         lst=[]
-        for attributes in row:
-            lst.append(regulate_rows(attributes))
+        for i in range(0,7):
+            if ( i != 6): # if it is not predecessor list
+                lst.append(regulate_rows(row[i]))
+            else:
+                lst.append(row[i])
         movie = Movie_class(lst[0],lst[1],lst[2],lst[3], lst[4], lst[5], lst[6])
         all_movies.append(movie)
     cur.close()
@@ -449,8 +557,11 @@ def getMyMovies(director_name):
     all_movies = []
     for row in rows:
         lst=[]
-        for attributes in row:
-            lst.append(regulate_rows(attributes))
+        for i in range(0,5):
+            if ( i != 4): # if it is not predecessor list
+                lst.append(regulate_rows(row[i]))
+            else:
+                lst.append(row[i])
         movie = myMovie_class(lst[0],lst[1],lst[2],lst[3], lst[4])
         all_movies.append(movie)
     cur.close()
@@ -470,6 +581,7 @@ def getAudsWhoBought(given_movie_id): #list auds who bouht ticket for a specifie
     sql_query = "SELECT a.username, a.name, a.surname FROM public.audience a INNER JOIN public.buy b ON a.username = b.username INNER JOIN public.play p ON b.session_id = p.session_id INNER JOIN public.directed_movie dm ON p.movie_id = dm.movie_id WHERE dm.movie_id = "+given_movie_id+";"
     cur.execute(sql_query)
     rows = cur.fetchall()
+    cur.close()
     all_auds = []
     for row in rows:
         print(row)
@@ -478,7 +590,6 @@ def getAudsWhoBought(given_movie_id): #list auds who bouht ticket for a specifie
             lst.append(regulate_rows(attributes))
         aud = Audience_class(lst[0],lst[1],lst[2])
         all_auds.append(aud)
-    cur.close()
     return all_auds
 
 class Audience_class: #this is for holding movies in a list (to show them in html, html couldn't get index of list)
@@ -486,3 +597,22 @@ class Audience_class: #this is for holding movies in a list (to show them in htm
     self.username = username
     self.name = name
     self.surname = surname
+
+def getMoviedIDs(audience_name):
+    cur = conn.cursor()
+    sql_query = "SELECT Pl.movie_id FROM public.buy B, public.play Pl WHERE B.username = '" + audience_name+ "' and B.session_id = Pl.session_id"
+    cur.execute(sql_query)
+    rows = cur.fetchall()
+    cur.close()
+    id_list = []
+    for row in rows:
+        id_list.append(row[0])
+    return id_list
+
+def addRate(audience_name, movie_id, rate):
+    cur = conn.cursor()
+    sql_query = "INSERT INTO public.rate (username, movie_id, rating) VALUES (%s, %s, %s);"
+    values = (audience_name, movie_id, rate)
+    cur.execute(sql_query, values)
+    conn.commit()
+    cur.close()
