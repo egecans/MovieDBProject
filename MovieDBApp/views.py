@@ -25,7 +25,6 @@ def loginDBManager(request):
 def homeDBManager(request):
     all_directors_list = getAllDirectors()
     all_audiences_list = getAllAudiences()
-    checkTimeOK(40001,'2023-05-25',2, 4)
     context={'directors':all_directors_list, 'audiences':all_audiences_list}
     return render(request,'manager_home.html',context)
 
@@ -171,7 +170,6 @@ def loginDirector(request):
 def homeDirector(request):
     director_name = request.session.get('username')
     all_movies_list = getMyMovies(director_name)
-    print(all_movies_list[0].predecessors_list)
     context={'username':director_name,'movies':all_movies_list}
     return render(request,'director_home.html',context)
 
@@ -251,11 +249,12 @@ def createMovieSession(request):
         time_slot = request.POST.get('time_slot')
         date = request.POST.get('date')
         theatre_id = request.POST.get('theatre_id')
+        session_id = request.POST.get('session_id')
         print(movie_id, time_slot, date, theatre_id)
         if (movie_id.isdigit() and time_slot.isdigit() and theatre_id.isdigit()): #check ID and duration is digit
             int_time_slot = int(time_slot)
             if (int_time_slot > 0 and int_time_slot < 5): #check duration is in range [1,4]
-                if (addMovieRelations(time_slot, date, movie_id, theatre_id)):
+                if (addMovieRelations(time_slot, date, movie_id, theatre_id,session_id)):
                     return redirect('/directorHome')
                 else:
                    messages.info(request, 'Your entered credentials not OK, (Duration + time slot <= 5) or given theatre is not available in this slot') 
